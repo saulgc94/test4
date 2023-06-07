@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}MAIN{% endblock %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'main.css' %}">
+
+<div class="container">
+    <div class="row justify-content-center mt-2">
+        <div class="col-md-10">
+            <div class="card" >
+                <div id="carouselSalasImagenes" class="carousel slide" data-bs-ride="false">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#carouselSalasImagenes" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                        <button type="button" data-bs-target="#carouselSalasImagenes" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                        <button type="button" data-bs-target="#carouselSalasImagenes" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                        <button type="button" data-bs-target="#carouselSalasImagenes" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                    </div>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <img src="{% static 'img/jupiter.avif' %}" class="d-block w-100" width="150" height="400" alt="jupiter">
+                            <div class="carousel-caption d-none d-md-block">
+                            <h5 class="resaltar-texto">Sala jupiter</h5>
+                            <p class="resaltar-texto">Un espacio impresionante y espacioso para la colaboración y la creación musical conjunta de grupos y bandas.</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'img/neptuno.avif' %}" class="d-block w-100" width="150" height="400" alt="neptuno">
+                            <div class="carousel-caption d-none d-md-block">
+                            <h5 class="resaltar-texto">Sala neptuno</h5>
+                            <p class="resaltar-texto">Un entorno sereno con una acústica excepcional para explorar melodías y armonías profundas.</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'img/venus.avif' %}" class="d-block w-100" width="150" height="400" alt="venus">
+                            <div class="carousel-caption d-none d-md-block">
+                            <h5 class="resaltar-texto">Sala Venus</h5>
+                            <p class="resaltar-texto">Un refugio acogedor y elegante donde las melodías florecen y el ambiente invita a la inspiración.</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'img/mercury.avif' %}" class="d-block w-100" width="150" height="400" alt="mercurio">
+                            <div class="carousel-caption d-none d-md-block">
+                            <h5 class="resaltar-texto">Sala Mercurio</h5>
+                            <p class="resaltar-texto">Un ambiente vibrante y enérgico que fomenta la experimentación y el ritmo en los ensayos musicales.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselSalasImagenes" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselSalasImagenes" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                <div class="card-body">
+                  <p class="card-text" style="margin-top: 20px;">Este espacio dedicado a la música es ideal para grupos y bandas que buscan un lugar donde dar vida a su creatividad. Con sus cuatro salas de ensayo perfectamente equipadas, cada una con un nombre inspirado en el sistema solar, este espacio ofrece un entorno ideal para el desarrollo y perfeccionamiento musical.<br><br> La Sala Júpiter, la más grande de todas, brinda un espacio impresionante para la colaboración y la creación musical conjunta. La Sala Neptuno, con su ambiente sereno y acústica excepcional, proporciona un lugar perfecto para explorar melodías y armonías profundas. La Sala Venus, con su diseño elegante y cálido, es un refugio acogedor donde las melodías pueden florecer. Finalmente, la Sala Mercurio, con su ambiente vibrante y enérgico, invita a la experimentación y al ritmo.<br><br>
+                    Al entrar en este espacio musical, los artistas son recibidos por una atmósfera estimulante y emocionante. Los pasillos están llenos de inspiración, decorados con murales que representan momentos icónicos de la historia de la música. Las salas están estratégicamente distribuidas, brindando privacidad y aislamiento acústico para cada grupo o banda. Además, se ha prestado especial atención a la estética y comodidad, con paredes insonorizadas, suelos acolchados y una iluminación cálida que crea un ambiente propicio para la creatividad. Este espacio dedicado a la música es un refugio donde los músicos pueden sumergirse en su arte y desarrollar su talento, rodeados de un entorno inspirador y equipamiento de primera calidad.</p>
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

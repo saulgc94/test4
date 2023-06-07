@@ -1,0 +1,188 @@
+<script>
+
+    var horas_reservadas = []
+    $(document).ready(function(){
+    //inicializar el timepicker
+    $('.timepicker').timepicker({
+        timeFormat: 'HH:mm',
+        interval: 60,
+        minTime: '10',
+        maxTime: '20',
+        dynamic: false,
+        dropdown: true,
+        scrollbar: true
+    });
+    $( "#datepicker" ).datepicker({
+        dateFormat: "yy/mm/dd" 
+    });
+    });
+    
+    //on change para cada vez que se cambie la fecha limpiar la bara de horario y busque horario
+    $(document).on('change', "#datepicker", function() {
+    horas_reservadas = []
+    $( "#tabla-horario td" ).css( "background-color", "" );
+    // si la sala y fecha están seleccionadas busca los horarios para mostrar los disponibles
+    if ($( "#sala" ).val() != "" && $( "#datepicker" ).val() != "") {
+        get_horario()
+        $( "#tabla-horario" ).removeAttr('hidden')
+    }else{
+        $( "#tabla-horario" ).attr('hidden', true)
+    }
+    
+    });
+
+    //on change para cada vez que se cambie la sala limpiar la bara de horario y busque horario
+    $(document).on('change', "#sala", function() {
+    horas_reservadas = []
+    $( "#tabla-horario td" ).css( "background-color", "" )
+    // si la sala y fecha están seleccionadas busca los horarios para mostrar los disponibles;
+    if ($( "#sala" ).val() != "" && $( "#datepicker" ).val() != "") {
+        get_horario()
+        $( "#tabla-horario" ).removeAttr('hidden')
+    }else{
+        $( "#tabla-horario" ).attr('hidden', true)
+    }
+    });
+
+
+
+    function get_horario(){
+        //prepara las variables
+        let date = $( "#datepicker" ).val()
+        let sala = $( "#sala" ).val()
+        let url = "{% url 'get_horario' %}";
+        //ajax para lanzar la acción
+        $.ajax({
+            type: 'GET',
+            url: url+'?sala='+sala+'&date='+date,
+            success: function(data) {
+                //recorre la respuesta para montar los datos para otorgar de fondo rojo a los segmentos de la barra con hora no disponible
+                for (let reserva of data) {
+                    let grupo = Object.keys(reserva)[0]
+                    let grupo_horas = Object.values(reserva)[0]
+                    let grupo_in =  grupo_horas[0].split(':')[0]
+                    let grupo_out =  grupo_horas[1].split(':')[0]
+                    for (let index = grupo_in; index < grupo_out; index++) {
+                    horas_reservadas.push(`${index}:00`)
+                    $( `#tabla-horario td[id='${index}:00']` ).css( "background-color", "darkred" );
+                    }
+                }
+            },
+            //en caso de error generar un alert informandolo
+            error: function(error) {
+                $.alert({
+                    title: '¡Error!',
+                    content: 'Error en el ajax realizando la llamada',
+                });
+            },
+        });
+    }
+
+
+    function reservar(){
+        //limpiar el contenedor de toasts
+        $(".toast-container").empty();
+        //prepara las variables
+        let date = $( "#datepicker" ).val()
+        let sala = $( "#sala" ).val()
+        let start_time = $( "#start-time" ).val()
+        let end_time = $( "#end-time" ).val()
+        let url = "{% url 'reservar_action' %}";
+        //si uno de las variables no tiene valor genera un toast con el error
+        if(!date || !sala || !start_time || !end_time){
+            let toast = `
+                    <div class="toast text-white bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">Reserva</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        Por favor, rellena todos los campos de reserva
+                    </div>
+                    </div>`
+            $(".toast-container").append(toast);
+            lanzar_toasts()
+            return;
+        
+        }
+        //si las horas seleccionadas están incluidas en el horario no disponible genera un toast con error
+        if(horas_reservadas.includes(start_time) || horas_reservadas.includes(end_time)){
+            let toast = `
+                    <div class="toast text-white bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">Reserva</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        Selecciona por favor un horario disponible
+                    </div>
+                    </div>`
+            $(".toast-container").append(toast);
+            lanzar_toasts()
+            return;
+        
+        }
+        
+        let form_data = {'date': date, 'sala': sala, 'start_time': start_time, 'end_time': end_time, 'csrfmiddlewaretoken': '{{ csrf_token }}'}
+        //lanza un ajax a la url con la data preparada
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: form_data,
+            success: function(data) {
+                //limpiar el contenedor de toasts
+                $(".toast-container").empty();
+                let toast = ''
+                //escribir el toast en función del status code de la respuesta
+                if (data['status_code'] == 200) {
+                toast = `
+                    <div class="toast text-white bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">Reserva</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${data['date']}: ${data['start_time']} - ${data['end_time']}
+                    </div>
+                    </div>`
+                }else{
+                toast = `
+                    <div class="toast text-white bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">Reserva</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${data['error']}
+                    </div>
+                    </div>`
+                }
+                //añadir el toast al contenedor de toasts
+                $(".toast-container").append(toast);
+                //lanzar los toast
+                lanzar_toasts()
+                //esperar al toast y recargar la página
+                setTimeout(function() {
+                    location.reload();
+                }, 5000);
+            },
+            //en caso de error generar un alert informandolo
+            error: function(error) {
+                $.alert({
+                    title: '¡Error!',
+                    content: 'Error en el ajax realizando la llamada',
+                });
+            },
+        });
+    }
+
+    //función para recoger los item con clase toast y hacerles un toast
+    function lanzar_toasts(){
+        var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+        var toastList = toastElList.map(function (toastEl) {
+            return new bootstrap.Toast(toastEl)
+        })
+        toastList.forEach(toast => toast.show())
+    }
+
+</script>

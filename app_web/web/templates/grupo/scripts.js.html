@@ -1,0 +1,396 @@
+
+<script>
+    //on change para gestionar el estado de deshabilitado en los botones de borrrar y editar músicos
+    $(document).on('change', ".check-musicos", function() {
+        switch ($('.check-musicos:checked').length) {
+            case 0:
+                $( "#btn-borrar-musico" ).attr('disabled', true);
+                $( "#btn-editar-musico" ).attr('disabled', true);
+                break;
+            case 1:
+                $('#btn-editar-musico').removeAttr('disabled');
+                $('#btn-borrar-musico').removeAttr('disabled');
+                break;
+            default:
+                $( "#btn-editar-musico" ).attr('disabled', true);
+                $('#btn-borrar-musico').removeAttr('disabled');
+                break;
+        }
+    });
+
+    //si el perfil es admin desplegar un datatable con dichos permisos
+    {% if is_admin %}
+        $(document).ready(function () {
+        $('#musicos').DataTable({
+            ajax: {
+                "url": '{% url "listar_musicos_admin" %}',
+                "type": "GET",
+                "dataSrc":""
+            },
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json',
+            },
+            order: [[1, 'asc']],
+            columnDefs: [
+                {targets: 0, orderable: false}, // No ordenar la columna de checkbox
+            ],
+            columns: [
+                {
+                    data: null,
+                    render: function (data) {
+                        let checkbox = '';
+                        checkbox = `<input type="checkbox"
+                        data-id="` + data.id + `"
+                        data-nombre="` + data.nombre + `"
+                        data-apellido="` + data.apellido + `"
+                        data-grupo="` + data.grupo + `"
+                        class="checkbox check-musicos">`;
+                        return checkbox;
+                    }
+                },
+                {
+                    data: 'grupo',
+                },
+                {
+                    data: 'nombre',
+                },
+                {
+                    data: 'apellido',
+                },
+                {
+                    data: 'apellido2',
+                },
+                {
+                    data: 'edad',
+                },
+                {
+                    data: 'direccion',
+                },
+                {
+                    data: 'dni',
+                },
+                
+            ]
+        });
+    });
+    //si el perfil no es admin desplegar un datatable con dichos permisos
+    {% else %}
+
+        $(document).ready(function () {
+            $('#musicos').DataTable({
+                ajax: {
+                    "url": '{% url "listar_musicos" %}',
+                    "type": "GET",
+                    "dataSrc":""
+                },
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json',
+                },
+                order: [[1, 'asc']],
+                columnDefs: [
+                    {targets: 0, orderable: false}, // No ordenar la columna de checkbox
+                ],
+                columns: [
+                    {
+                        data: null,
+                        render: function (data) {
+                            let checkbox = '';
+                            checkbox = `<input type="checkbox"
+                            data-id="` + data.id + `"
+                            data-nombre="` + data.nombre + `"
+                            data-apellido="` + data.apellido + `"
+                            class="checkbox check-musicos">`;
+                            return checkbox;
+                        }
+                    },
+                    {
+                        data: 'nombre',
+                    },
+                    {
+                        data: 'apellido',
+                    },
+                    {
+                        data: 'apellido2',
+                    },
+                    {
+                        data: 'edad',
+                    },
+                    {
+                        data: 'direccion',
+                    },
+                    {
+                        data: 'dni',
+                    },
+                    
+                ]
+            });
+        });
+    {% endif %}
+
+    //función para recoger los item con clase toast y hacerles un toast
+    function lanzar_toasts(){
+        var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+        var toastList = toastElList.map(function (toastEl) {
+            return new bootstrap.Toast(toastEl)
+        })
+        toastList.forEach(toast => toast.show())
+    }
+
+    function crear_musico(grupo){
+        let url_view = "URL:{% url 'crear_musico_view' %}";
+        //lanzar una ventana que cargue el view determinado
+        $.confirm({
+            title: 'Añadir músico',
+            titleClass: 'confirm-title',
+            content: url_view,
+            buttons: {
+                //definir el botón de confirmar para que recoja los datos del formulario y llame por ajax a la url
+                confirm: {
+                    text: 'Confirmar',
+                    btnClass: 'btn-primary',
+                    action: function () {
+                        let form_data = $('#form-crear-musico').serialize()
+                        let url = "{% url 'crear_musico_action' %}";
+                        $.ajax({
+                            type: 'POST',
+                            url: url,
+                            data: form_data,
+                            success: function(data) {
+                                //limpia el contenedor de toast para evitar duplicados
+                                $(".toast-container").empty();
+                                let toast = ''
+                                //escribir el toast en función del status code de la respuesta
+                                if (data['status_code'] == 200) {
+                                toast = `
+                                    <div class="toast text-white bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+                                    <div class="toast-header">
+                                        <strong class="me-auto">Crear músico</strong>
+                                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                    </div>
+                                    <div class="toast-body">
+                                        ${data['nombre']} ${data['apellido']} inscrito correctamente.
+                                    </div>
+                                    </div>`
+                                }else{
+                                toast = `
+                                    <div class="toast text-white bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+                                    <div class="toast-header">
+                                        <strong class="me-auto">Crear músico</strong>
+                                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                    </div>
+                                    <div class="toast-body">
+                                        Ha habido un error creando el registro del músico.
+                                    </div>
+                                    </div>`
+                                }
+                                //añadir el toast al contenedor
+                                $(".toast-container").append(toast);
+                                //lanzar los toast
+                                lanzar_toasts()
+                                //recargar datatables
+                                $('#musicos').DataTable().ajax.reload();
+                            },
+                            //en caso de error generar un alert informandolo
+                            error: function(error) {
+                                $.alert({
+                                title: '¡Error!',
+                                content: 'Error en el ajax realizando la llamada',
+                                });
+                            },
+                        });
+                    }
+                },
+                cancel:{
+                    text: 'Cancelar',
+                    btnClass: 'btn-secondary',
+                    action: function () {
+                    //close
+                    },
+                },
+                
+            },
+        });
+    }
+
+    function borrar_musico(){
+        //lanzar con confirm una ventana
+        $.confirm({
+            title: 'Borrar músico',
+            content: `¿Está seguro que desea borrar los músicos seleccionados?`,
+            buttons: {
+                //definir el botón de confirmar para que recoja los datos de los checkbox y llame por ajax a la url
+                confirm: {
+                    text: 'Confirmar',
+                    btnClass: 'btn-primary',
+                    action: function () {
+                        let musicos_list = []
+                        $('.check-musicos:checked').each(function() {
+                            let dict = {}
+                            dict['id'] = $(this).data("id")
+                            dict['nombre'] = $(this).data( "nombre" )
+                            dict['apellido'] = $(this).data( "apellido" )
+                            {% if is_admin %}
+                            dict['grupo'] = $(this).data( "grupo" )
+                            {% endif %}
+                            musicos_list.push(dict)
+                        });
+                        let url = "{% url 'borrar_musico_action' %}";
+                        //definir el data que enviar
+                        let data = {'musicos_list': JSON.stringify(musicos_list), 'csrfmiddlewaretoken': '{{ csrf_token }}'};
+                        //ajax para lanzar la acción
+                        $.ajax({
+                            type: 'POST',
+                            url: url,
+                            data: data,
+                            success: function(data) {
+                                //limpiar el contenedor de toasts
+                                $(".toast-container").empty();
+                                for (let index = 0; index < data.length; index++) {
+                                    let toast = ''
+                                    //escribir el toast en función del status code de la respuesta
+                                    if (data[index]['status_code'] = 200) {
+                                    toast = `
+                                        <div class="toast text-white bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+                                        <div class="toast-header">
+                                            <strong class="me-auto">Borrar músico</strong>
+                                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                        </div>
+                                        <div class="toast-body">
+                                            ${data[index]['nombre']} ${data[index]['apellido']} borrado correctamente.
+                                        </div>
+                                        </div>`
+                                    }else{
+                                    toast = `
+                                        <div class="toast text-white bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+                                        <div class="toast-header">
+                                            <strong class="me-auto">Borrar músico</strong>
+                                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                        </div>
+                                        <div class="toast-body">
+                                            Ha habido un error borrando el registro del músico.
+                                        </div>
+                                        </div>`
+                                    }
+                                    //añadir el toast al contenedor de toasts
+                                    $(".toast-container").append(toast);
+                                }
+                                //lanzar los toast
+                                lanzar_toasts()
+                                //recargar datatables
+                                $('#musicos').DataTable().ajax.reload();
+                            },
+                            //en caso de error generar un alert informandolo
+                            error: function(error) {
+                                $.alert({
+                                    title: '¡Error!',
+                                    content: 'Error en el ajax realizando la llamada',
+                                });
+                            },
+                        });
+                    }
+                },
+                cancel:{
+                    text: 'Cancelar',
+                    btnClass: 'btn-secondary',
+                    action: function () {
+                    //close
+                    },
+                },
+
+            },
+        });
+    }
+
+    
+    function editar_musico(){
+        //preparar las variables
+        let musico_id = $('.check-musicos:checked').data('id')
+        {% if is_admin %}
+            let grupo = $('.check-musicos:checked').data('grupo')
+        {% endif %}
+        let url_view = "URL:{% url 'editar_musico_view' %}";
+        //lanzar con confirm una ventana que cargue el url_view
+        $.confirm({
+            title: 'Editar músico',
+            //pasar en funcion de si es administrado la variable de grupo
+            {% if is_admin %}
+            content: url_view+'?musico_id='+musico_id+'&grupo='+grupo,
+            {% else %}
+            content: url_view+'?musico_id='+musico_id,
+            {% endif %}
+            buttons: {
+                //definir el botón de confirmar para que recoja los datos del formulario y llame por ajax a la url
+                confirm: {
+                    text: 'Confirmar',
+                    btnClass: 'btn-primary',
+                    action: function () {
+                        //definir el data que enviar
+                        let form_data = $('#form-editar-musico').serialize()+'&musico_id='+musico_id
+                        //si es admin añadir la variable del grupo
+                        {% if is_admin %}
+                            form_data = form_data+'&grupo='+grupo
+                        {% endif %}
+                        let url = "{% url 'editar_musico_action' %}";
+                        //ajax para lanzar la acción
+                        $.ajax({
+                            type: 'POST',
+                            url: url,
+                            data: form_data,
+                            success: function(data) {
+                                //limpiar el contenedor de toasts
+                                $(".toast-container").empty();
+                                let toast = ''
+                                //escribir el toast en función del status code de la respuesta
+                                if (data['status_code'] == 200) {
+                                toast = `
+                                    <div class="toast text-white bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+                                    <div class="toast-header">
+                                        <strong class="me-auto">Editar músico</strong>
+                                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                    </div>
+                                    <div class="toast-body">
+                                        ${data['nombre']} ${data['apellido']} editado correctamente.
+                                    </div>
+                                    </div>`
+                                }else{
+                                toast = `
+                                    <div class="toast text-white bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+                                    <div class="toast-header">
+                                        <strong class="me-auto">Editar músico</strong>
+                                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                    </div>
+                                    <div class="toast-body">
+                                        Ha habido un error editando los datos del músico.
+                                    </div>
+                                    </div>`
+                                }
+                                //añadir el toast al contenedor de toasts
+                                $(".toast-container").append(toast);
+                                //lanzar los toast
+                                lanzar_toasts()
+                                //recargar datatables
+                                $('#musicos').DataTable().ajax.reload();
+                            },
+                            //en caso de error generar un alert informandolo
+                            error: function(error) {
+                                $.alert({
+                                    title: '¡Error!',
+                                    content: 'Error en el ajax realizando la llamada',
+                                });
+                            },
+                        });
+                    }
+                },
+                cancel:{
+                    text: 'Cancelar',
+                    btnClass: 'btn-secondary',
+                    action: function () {
+                    //close
+                    },
+                },
+                
+            },
+        });
+    }
+
+</script>

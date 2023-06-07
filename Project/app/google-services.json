@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "123477974229",
+    "firebase_url": "https://prueba-6f6bb-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "prueba-6f6bb",
+    "storage_bucket": "prueba-6f6bb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123477974229:android:82a96aa35e716aef7c165c",
+        "android_client_info": {
+          "package_name": "com.dam.project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "123477974229-bdpvegnj06cl6sjlr3ng2v7sstgd3uf5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYeeDc3oo2D2bXEnotEtpmUknHI_NFyH0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "123477974229-bdpvegnj06cl6sjlr3ng2v7sstgd3uf5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

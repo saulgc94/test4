@@ -1,0 +1,359 @@
+<script>
+
+    $(document).ready(function(){
+        //inicializar el datepicker
+        $("#registro-datepicker").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: false,
+            dateFormat: 'yy/mm',
+            onClose: function(dateText, inst) { 
+                $(this).datepicker('setDate', new Date(inst.selectedYear, inst.selectedMonth, 1));
+                $(this).change();
+            }
+        });
+    });
+
+    //on change al seleccionar fecha en el calendario
+    $(document).on('change', "#registro-datepicker", function() {
+        if ($( "#registro-sala" ).val() != "" && $( "#registro-datepicker" ).val() != "") {
+            let data_selected = $( "#registro-datepicker" ).val().split('/')
+            let anyo = data_selected[0]
+            let mes = data_selected[1]
+            //si se ha cumplido la condición de estar los datos necesarios rellenos se llama al get tabla admin o no en función del contexto del view
+            {% if is_admin %}
+                get_tabla_registro_admin(anyo, mes, $( "#registro-sala" ).val())
+            {% else %}
+                get_tabla_registro(anyo, mes, $( "#registro-sala" ).val())
+            {% endif %}
+        }
+    });
+
+    //on change al seleccionar la sala
+    $(document).on('change', "#registro-sala", function() {
+        if ($( "#registro-sala" ).val() != "" && $( "#registro-datepicker" ).val() != "") {
+            let data_selected = $( "#registro-datepicker" ).val().split('/')
+            let anyo = data_selected[0]
+            let mes = data_selected[1]
+            //si se ha cumplido la condición de estar los datos necesarios rellenos se llama al get tabla admin o no en función del contexto del view
+            {% if is_admin %}
+                get_tabla_registro_admin(anyo, mes, $( "#registro-sala" ).val())
+            {% else %}
+                get_tabla_registro(anyo, mes, $( "#registro-sala" ).val())
+            {% endif %}
+        }
+    });
+
+    //on change para gestionar el estado de deshabilitado en los botones de borrrar y editar registros
+    $(document).on('change', ".check-registros", function() {
+        switch ($('.check-registros:checked').length) {
+            case 0:
+                $( "#btn-borrar-registro" ).attr('disabled', true);
+                $( "#btn-editar-registro" ).attr('disabled', true);
+                break;
+            case 1:
+                $('#btn-editar-registro').removeAttr('disabled');
+                $('#btn-borrar-registro').removeAttr('disabled');
+                break;
+            default:
+                $( "#btn-editar-registro" ).attr('disabled', true);
+                $('#btn-borrar-registro').removeAttr('disabled');
+                break;
+        }
+    });
+
+    {% if is_admin %}
+    function get_tabla_registro_admin(year, month, sala){
+        $( "#botones-registro" ).removeAttr('hidden')
+        let url = '{% url "get_tabla_registro_admin" %}'
+        if ( $.fn.DataTable.isDataTable( '#tabla-registro' ) ) {
+            $('#tabla-registro').data( 'sala', '' );
+            $('#tabla-registro').DataTable().destroy();
+        }
+        $('#tabla-registro').data( 'sala', sala );
+        $('#tabla-registro').DataTable({
+            ajax: {
+                "url": url+"?year="+year+"&month="+month+"&sala="+sala,
+                "type": "GET",
+                "dataSrc":""
+            },
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json',
+            },
+            order: [[1, 'asc']],
+            columnDefs: [
+                {targets: 0, orderable: false},
+            ],
+            columns: [
+                {
+                    data: null,
+                    render: function (data) {
+                        let checkbox = '';
+                        checkbox = `<input type="checkbox"
+                        data-date="` + data.date + `"
+                        data-in="` + data.in + `"
+                        data-grupo="` + data.grupo + `"
+                        class="checkbox check-registros">`;
+                        return checkbox;
+                    }
+                },
+                {
+                    data: 'grupo',
+                },
+                {
+                    data: 'date',
+                },
+                {
+                    data: 'in',
+                },
+                {
+                    data: 'out',
+                },
+            ]
+        });
+        
+    }
+
+    {% endif %}
+
+    function get_tabla_registro(year, month, sala){
+        $( "#botones-registro" ).removeAttr('hidden')
+        let url = '{% url "get_tabla_registro" %}'
+        if ( $.fn.DataTable.isDataTable( '#tabla-registro' ) ) {
+            $('#tabla-registro').data( 'sala', '' );
+            $('#tabla-registro').DataTable().destroy();
+        }
+        $('#tabla-registro').data( 'sala', sala );
+        $('#tabla-registro').DataTable({
+            ajax: {
+                "url": url+"?year="+year+"&month="+month+"&sala="+sala,
+                "type": "GET",
+                "dataSrc":""
+            },
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json',
+            },
+            order: [[2, 'asc']],
+            columnDefs: [
+                {targets: 0, orderable: false}, // No ordenar la columna de checkbox
+                {targets: 1, orderable: false}, // No ordenar la columna de checkbox
+            ],
+            columns: [
+                {
+                    data: null,
+                    render: function (data) {
+                        let checkbox = '';
+                        checkbox = `<input type="checkbox"
+                        data-date="` + data.date + `"
+                        data-in="` + data.in + `"
+                        class="checkbox check-registros">`;
+                        return checkbox;
+                    }
+                },
+                {
+                    data: 'nombre',
+                },
+                {
+                    data: 'date',
+                },
+                {
+                    data: 'in',
+                },
+                {
+                    data: 'out',
+                },
+            ]
+        });
+        
+    }
+
+    //función para recoger los item con clase toast y hacerles un toast
+    function lanzar_toasts(){
+        var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+        var toastList = toastElList.map(function (toastEl) {
+            return new bootstrap.Toast(toastEl)
+        })
+        toastList.forEach(toast => toast.show())
+    }
+    
+    function borrar_registro(){
+        //lanzar con confirm una ventana
+        $.confirm({
+            title: 'Borrar registro',
+            content: `¿Está seguro que desea borrar los registros seleccionados?`,
+            buttons: {
+                //definir el botón de confirmar para que recoja los datos de los checkbox y llame por ajax a la url
+                confirm: {
+                    text: 'Confirmar',
+                    btnClass: 'btn-primary',
+                    action: function () {
+                        let url = "{% url 'borrar_registro_action' %}";
+                        let registros_list = []
+                        $('.check-registros:checked').each(function() {
+                            let dict = {}
+                            dict['date'] = $(this).data( "date");
+                            dict['in'] = $(this).data( "in" );
+                            {% if is_admin %}
+                                dict['grupo'] = $(this).data( "grupo" );
+                            {% endif %}
+                            registros_list.push(dict)
+                        });
+                        //definir el data que enviar
+                        let data = {'registros_list': JSON.stringify(registros_list), 'sala': $('#tabla-registro').data('sala'), 'csrfmiddlewaretoken': '{{ csrf_token }}'};
+                        //ajax para lanzar la acción
+                        $.ajax({
+                            type: 'POST',
+                            url: url,
+                            data: data,
+                            success: function(data) {
+                                //limpiar el contenedor de toasts
+                                $(".toast-container").empty();
+                                for (let index = 0; index < data.length; index++) {
+                                    let toast = ''
+                                    //escribir el toast en función del status code de la respuesta
+                                    if (data[index]['status_code'] = 200) {
+                                    toast = `
+                                        <div class="toast text-white bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+                                        <div class="toast-header">
+                                            <strong class="me-auto">Borrar registro</strong>
+                                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                        </div>
+                                        <div class="toast-body">
+                                            La reserva del ${data[index]['registro_date']} ha sido borrada correctamente.
+                                        </div>
+                                        </div>`
+                                    }else{
+                                    toast = `
+                                        <div class="toast text-white bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+                                        <div class="toast-header">
+                                            <strong class="me-auto">Borrar registro</strong>
+                                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                        </div>
+                                        <div class="toast-body">
+                                            ${data['error']}
+                                        </div>
+                                        </div>`
+                                    }
+                                    //añadir el toast al contenedor de toasts
+                                    $(".toast-container").append(toast);
+                                }
+                                //lanzar los toast
+                                lanzar_toasts()
+                                //recargar datatables
+                                $('#tabla-registro').DataTable().ajax.reload();
+                            },
+                            //en caso de error generar un alert informandolo
+                            error: function(error) {
+                                $.alert({
+                                title: 'Alert!',
+                                content: 'error EDITAR REGISTRO',
+                                });
+                            },
+                        });
+                    }
+                },
+                cancel:{
+                    text: 'Cancelar',
+                    btnClass: 'btn-secondary',
+                    action: function () {
+                    //close
+                    },
+                },
+                
+            },
+        });
+    }
+
+
+
+    function editar_registro(){
+        //preparar las variables
+        let registro_date = $('.check-registros:checked').data('date')
+        let old_registro_in = $('.check-registros:checked').data('in')
+        let sala = $('#tabla-registro').data('sala');
+        let url_view = "URL:{% url 'editar_registro_view' %}";
+        {% if is_admin %}
+        let grupo = $('.check-registros:checked').data('grupo')
+        {% endif %}
+        //lanzar con confirm una ventana que cargue el url_view
+        $.confirm({
+            title: 'Editar registro',
+            //pasar en funcion de si es administrado la variable de grupo
+            {% if is_admin %}
+            content: url_view+'?registro_date='+registro_date+'&sala='+sala+'&grupo='+grupo,
+            {% else %}
+            content: url_view+'?registro_date='+registro_date+'&sala='+sala,
+            {% endif %}
+            buttons: {
+                //definir el botón de confirmar para que recoja los datos del formulario y llame por ajax a la url
+                confirm: {
+                    text: 'Confirmar',
+                    btnClass: 'btn-primary',
+                    action: function () {
+                        let form_data = $('#form-editar-registro').serialize()+'&registro_date='+registro_date+'&sala='+sala+'&old_registro_in='+old_registro_in
+                        {% if is_admin %}
+                        form_data = form_data+'&grupo='+grupo
+                        {% endif %}
+                        let url = "{% url 'editar_registro_action' %}";
+                         //ajax para lanzar la acción
+                        $.ajax({
+                            type: 'POST',
+                            url: url,
+                            data: form_data,
+                            success: function(data) {
+                                //limpiar el contenedor de toasts
+                                $(".toast-container").empty();
+                                let toast = ''
+                                //escribir el toast en función del status code de la respuesta
+                                if (data['status_code'] == 200) {
+                                    toast = `
+                                    <div class="toast text-white bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+                                    <div class="toast-header">
+                                        <strong class="me-auto">Editar reserva</strong>
+                                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                    </div>
+                                    <div class="toast-body">
+                                        La reserva del ${data['registro_date']} ha sido editada correctamente.
+                                    </div>
+                                    </div>`
+                                }else{
+                                toast = `
+                                    <div class="toast text-white bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+                                    <div class="toast-header">
+                                        <strong class="me-auto">Editar reserva</strong>
+                                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                    </div>
+                                    <div class="toast-body">
+                                        ${data['error']}
+                                    </div>
+                                    </div>`
+                                }
+                                //añadir el toast al contenedor de toasts
+                                $(".toast-container").append(toast);
+                                //lanzar los toast
+                                lanzar_toasts()
+                                //recargar datatables
+                                $('#tabla-registro').DataTable().ajax.reload();
+                            },
+                            //en caso de error generar un alert informandolo
+                            error: function(error) {
+                                $.alert({
+                                title: 'Alert!',
+                                content: 'error EDITAR REGISTRO',
+                                });
+                            },
+                        });
+                    }
+                },
+                cancel:{
+                    text: 'Cancelar',
+                    btnClass: 'btn-secondary',
+                    action: function () {
+                    //close
+                    },
+                },
+                
+            },
+        });
+    }
+</script>

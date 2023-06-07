@@ -1,0 +1,61 @@
+
+<form id="form-editar-registro">{% csrf_token %}
+    <div class="form-group">
+        <label for="start-time">Entrada</label>
+        <select class="form-select form-select-lg mb-3" name="start-time" id="start-time">
+            <option value="10:00">10:00</option>
+            <option value="11:00">11:00</option>
+            <option value="12:00">12:00</option>
+            <option value="13:00">13:00</option>
+            <option value="14:00">14:00</option>
+            <option value="15:00">15:00</option>
+            <option value="16:00">16:00</option>
+            <option value="17:00">17:00</option>
+            <option value="18:00">18:00</option>
+            <option value="19:00">19:00</option>
+            <option value="20:00">20:00</option>
+          </select>
+
+    </div>
+    <div class="form-group">
+        <label for="end-time">Salida</label>
+        <select class="form-select form-select-lg mb-3" name="end-time" id="end-time">
+            <option value="10:00">10:00</option>
+            <option value="11:00">11:00</option>
+            <option value="12:00">12:00</option>
+            <option value="13:00">13:00</option>
+            <option value="14:00">14:00</option>
+            <option value="15:00">15:00</option>
+            <option value="16:00">16:00</option>
+            <option value="17:00">17:00</option>
+            <option value="18:00">18:00</option>
+            <option value="19:00">19:00</option>
+            <option value="20:00">20:00</option>
+          </select>
+    </div>
+</form>
+<script>
+    $('#start-time option[value="{{registro_data.in}}"').prop('selected', true)
+    $('#end-time option[value="{{registro_data.out}}"').prop('selected', true)
+    //   $('input#start-time').timepicker({
+    //     timeFormat: 'HH:mm',
+    //     interval: 60,
+    //     minTime: '10',
+    //     maxTime: '20',
+    //     defaultTime: '{{registro_data.in}}',
+    //     dynamic: true,
+    //     dropdown: true,
+    //     scrollbar: true,
+    //   });
+
+    //   $('input#end-time').timepicker({
+    //     timeFormat: 'HH:mm',
+    //     interval: 60,
+    //     minTime: '10',
+    //     maxTime: '20',
+    //     defaultTime: '{{registro_data.out}}',
+    //     dynamic: false,
+    //     dropdown: true,
+    //     scrollbar: true,
+    //   });
+</script>
